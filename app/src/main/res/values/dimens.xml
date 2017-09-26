@@ -7,4 +7,6 @@
     <dimen name="photo_size">80dip</dimen>
     <dimen name="camera_size">80dip</dimen>
     <dimen name="directory_height">80dp</dimen>
+
+    <dimen name="photo_pad">8dp</dimen>
 </resources>

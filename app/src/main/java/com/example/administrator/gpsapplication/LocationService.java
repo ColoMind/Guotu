@@ -1,6 +1,5 @@
 package com.example.administrator.gpsapplication;
 
-import android.app.LoaderManager;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,8 +11,10 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-import static com.example.administrator.gpsapplication.Common.FIFTY_METER;
-import static com.example.administrator.gpsapplication.Common.FIVE_SECONDS;
+import com.example.administrator.gpsapplication.Constant.Common;
+
+import static com.example.administrator.gpsapplication.Constant.Common.FIFTY_METER;
+import static com.example.administrator.gpsapplication.Constant.Common.FIVE_SECONDS;
 
 public class LocationService extends Service implements LocationListener {
     private static final String TAG = "LocationSvc";

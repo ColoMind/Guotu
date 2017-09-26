@@ -1,4 +1,4 @@
-package com.example.administrator.gpsapplication;
+package com.example.administrator.gpsapplication.Constant;
 
 import android.Manifest;
 import android.os.Environment;
@@ -28,7 +28,6 @@ public class Common {
     public static final String[] PERMISSIONS_LOCATION = new String[]{
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
     };
 
     //camera permissions needed
@@ -38,7 +37,6 @@ public class Common {
     };
 
     public static final int REQUEST_CODE = 0;
-
 
     //Variable about camera
     public static final String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "mms";

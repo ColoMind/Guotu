@@ -5,10 +5,16 @@
         android:id="@+id/action_setting"
         android:title="@string/title_menu_setting"
         app:showAsAction="never" />
-
+    <item
+        android:id="@+id/action_upload"
+        android:icon="@drawable/icon_action_upload"
+        android:title="@string/title_menu_upload"
+        app:showAsAction="always" />
     <item
         android:id="@+id/action_camera"
-        android:title="@string/action_camera"
         android:icon="@drawable/icon_camera"
+        android:title="@string/title_menu_camera"
         app:showAsAction="always" />
+
+
 </menu>

@@ -31,4 +31,5 @@ dependencies {
     compile 'com.android.support:preference-v7:26.1.0'
     compile 'com.foamtrace:photopicker:1.0'
     compile 'me.iwf.photopicker:PhotoPicker:0.9.5@aar'
+    implementation 'com.android.support:recyclerview-v7:26.0.0-beta1'
 }

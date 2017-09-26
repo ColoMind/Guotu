@@ -16,9 +16,10 @@
 
     <!-- strings for menu -->
     <string name="title_menu_setting">设置</string>
+    <string name="title_menu_upload">上传</string>
+    <string name="title_menu_camera">相机</string>
 
     <!--strings for permission dialog -->
-    <string name="action_camera">相机</string>
     <string name="action_setting">设置</string>
     <string name="action_quit">退出</string>
     <string name="dialog_title">帮助</string>
@@ -38,5 +39,6 @@
         completions."
     </string>
 
+    <string name="open_map">打开地图</string>
 
 </resources>

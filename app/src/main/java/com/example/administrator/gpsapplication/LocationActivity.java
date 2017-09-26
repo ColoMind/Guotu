@@ -1,6 +1,6 @@
 package com.example.administrator.gpsapplication;
 
-import android.app.Activity;
+import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
@@ -9,22 +9,33 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.administrator.gpsapplication.Camera.PhotoLoadAdapter;
+import com.example.administrator.gpsapplication.Constant.Common;
+import com.example.administrator.gpsapplication.Constant.ConstantVar;
 import com.example.administrator.gpsapplication.Data.LocationContract;
 import com.example.administrator.gpsapplication.Data.LocationHelper;
 import com.example.administrator.gpsapplication.Login.LoginActivity;
 import com.example.administrator.gpsapplication.Permission.PermissionActivity;
 import com.example.administrator.gpsapplication.Permission.PermissionsChecker;
 import com.example.administrator.gpsapplication.Preference.SettingActivity;
-import com.foamtrace.photopicker.ImageCaptureManager;
-import com.foamtrace.photopicker.ImageConfig;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,7 +45,7 @@ import me.iwf.photopicker.PhotoPicker;
 import me.iwf.photopicker.PhotoPreview;
 
 
-public class LocationActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class LocationActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener, View.OnClickListener {
     private LocationHelper mHelper;
     private TextView location_display;
     private ProgressDialog dialog;
@@ -43,32 +54,59 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
     private Intent intentCarryData;
     private SharedPreferences sp;
     private String userName;
+    private ArrayList<String> selectedPhotos;
+    private RecyclerView viewPhotoPreview;
+    private PhotoLoadAdapter mAdapter;
     private CameraHelper mCameraHelper;
+    private Button openMap;
+    public static final int NUM_SPAN = 3;
+    private WebView viewDisplayMap;
+    private PhotoLoadAdapter.photoItemClickListener mPhotoItemClickListener;
+    private WebSettings webSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_photo_preview);
         init();
 
     }
 
     public void init() {
         location_display = findViewById(R.id.text);
+        location_display.setVisibility(View.VISIBLE);
+
+        //init the buttons
+        openMap = findViewById(R.id.open_map);
+        openMap.setOnClickListener(this);
+
         mChecker = new PermissionsChecker(this);
         mCameraHelper = new CameraHelper();
 
-        boolean test = mChecker.lacksPermissions(Common.PERMISSIONS_LOCATION);
-
         upLoadToServer = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(getString(R.string.key_pref_upload), false);
+
+        mPhotoItemClickListener = new PhotoLoadAdapter.photoItemClickListener() {
+            @Override
+            public void onPhotoClick(int index) {
+                mCameraHelper.previewPhoto(index);
+            }
+        };
+
+        //init the recyclerview
+        mAdapter = new PhotoLoadAdapter(mPhotoItemClickListener);
+        viewPhotoPreview = findViewById(R.id.view_photo_preview);
+        viewPhotoPreview.setLayoutManager(new GridLayoutManager(this, NUM_SPAN));
+        viewPhotoPreview.setHasFixedSize(true);
+        viewPhotoPreview.setAdapter(mAdapter);
 
         //getUsername
         sp = getSharedPreferences(LoginActivity.PREF_NAME, 0);
         userName = sp.getString(getString(R.string.key_save_username), null);
 
-        if (test) {
+        if (mChecker.lacksPermissions(Common.PERMISSIONS_LOCATION)) {
             PermissionActivity.startActivityForResult(LocationActivity.this, Common.REQUEST_CODE, Common.PERMISSIONS_LOCATION);
         }
+
         //regist broadcast
         IntentFilter filter = new IntentFilter();
         filter.addAction(Common.LOCATION_ACTION);
@@ -90,8 +128,15 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
     @Override
     protected void onResume() {
         super.onResume();
+        if (webSettings != null) {
+            webSettings.setJavaScriptEnabled(true);
+        }
+        if (selectedPhotos != null) {
+            location_display.setVisibility(View.INVISIBLE);
+        }
     }
 
+    @TargetApi(21)
     @Override
     protected void onStart() {
         super.onStart();
@@ -102,6 +147,14 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
     protected void onDestroy() {
         super.onDestroy();
         PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+        if (viewDisplayMap != null) {
+            viewDisplayMap.loadDataWithBaseURL(null, "", "text/html", "utf-8", null);
+            viewDisplayMap.clearHistory();
+            ((ViewGroup) viewDisplayMap.getParent()).removeView(viewDisplayMap);
+            viewDisplayMap.destroy();
+            viewDisplayMap = null;
+        }
+
     }
 
     @Override
@@ -118,8 +171,7 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
                 startActivity(intentStartSetting);
                 break;
             case R.id.action_camera:
-                mCameraHelper = new CameraHelper();
-                mCameraHelper.takePhoto();
+                checkCameraPermissions();
                 break;
             default:
                 break;
@@ -127,6 +179,47 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
         return super.onOptionsItemSelected(item);
     }
 
+    @TargetApi(21)
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.open_map:
+                setContentView(R.layout.activity_webview);
+                viewDisplayMap = findViewById(R.id.web_view);
+                setWebSetting(viewDisplayMap);
+                viewDisplayMap.loadUrl(ConstantVar.LOGINURL);
+                viewDisplayMap.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                        view.loadUrl(request.getUrl().toString());
+                        return true;
+                    }
+                });
+                /*Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData();
+                startActivity(intent);*/
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (webSettings != null) {
+            webSettings.setJavaScriptEnabled(false);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (viewDisplayMap != null) {
+            viewDisplayMap.onPause();
+        }
+    }
 
     private class LocationBroadcastReceiver extends BroadcastReceiver {
         @Override
@@ -192,6 +285,14 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
         }
     }
 
+    public void checkCameraPermissions() {
+        if (mChecker.lacksPermissions(Common.PERMISSIONS_CAMERA)) {
+            PermissionActivity.startActivityForResult(LocationActivity.this, Common.REQUEST_CAMERA_CODE, Common.PERMISSIONS_CAMERA);
+        } else {
+            mCameraHelper.takePhoto();
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -199,23 +300,19 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
         if (requestCode == Common.REQUEST_CODE && resultCode == PermissionActivity.PERMISSIONS_DENIED) {
             finish();
         }
+
+        if (resultCode == RESULT_OK && requestCode == Common.REQUEST_CAMERA_CODE) {
+            checkCameraPermissions();
+        }
+
         if (resultCode == RESULT_OK && requestCode == PhotoPicker.REQUEST_CODE) {
             if (data != null) {
-                ArrayList<String> selectedPhotos = data.getStringArrayListExtra(PhotoPicker.KEY_SELECTED_PHOTOS);
-                PhotoPreview.builder()
-                        .setPhotos(selectedPhotos)
-                        .setCurrentItem(0)
-                        .setShowDeleteButton(false)
-                        .start(LocationActivity.this);
+                selectedPhotos = data.getStringArrayListExtra(PhotoPicker.KEY_SELECTED_PHOTOS);
+                mAdapter.setPaths(selectedPhotos);
             }
         }
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        /*outState.putBoolean(getString(R.string.key_pref_upload), upLoadToServer);*/
-    }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -226,13 +323,8 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
     }
 
     public class CameraHelper {
-        private PermissionsChecker mChecker;
 
-        public CameraHelper() {
-            mChecker = new PermissionsChecker(LocationActivity.this);
-        }
-
-        private void cameraActive() {
+        public void takePhoto() {
             PhotoPicker.builder()
                     .setPhotoCount(9)
                     .setShowCamera(true)
@@ -241,13 +333,38 @@ public class LocationActivity extends AppCompatActivity implements SharedPrefere
                     .start(LocationActivity.this, PhotoPicker.REQUEST_CODE);
         }
 
-        public void takePhoto() {
-            if (mChecker.lacksPermissions(Common.PERMISSIONS_CAMERA)) {
-                PermissionActivity.startActivityForResult(LocationActivity.this, Common.REQUEST_CODE, Common.PERMISSIONS_CAMERA);
-            } else {
-                cameraActive();
-            }
+        public void previewPhoto(int index) {
+            PhotoPreview.builder()
+                    .setPhotos(selectedPhotos)
+                    .setCurrentItem(index)
+                    .setShowDeleteButton(false)
+                    .start(LocationActivity.this); //点击完成按钮后去的位置
         }
+    }
 
+    public void setWebSetting(WebView webView) {
+        //声明WebSettings子类
+        webSettings = webView.getSettings();
+
+        // 如果访问的页面中要与Javascript交互，则webview必须设置支持Javascript
+        webSettings.setJavaScriptEnabled(true);
+        // 若加载的 html 里有JS 在执行动画等操作，会造成资源浪费（CPU、电量）
+        // 在 onStop 和 onResume 里分别把 setJavaScriptEnabled() 给设置成 false 和 true 即可
+
+        //设置自适应屏幕，两者合用
+        webSettings.setUseWideViewPort(true);//将图片调整到适合webview的大小
+        webSettings.setLoadWithOverviewMode(true);// 缩放至屏幕的大小
+
+        // 缩放操作
+        webSettings.setSupportZoom(true);//支持缩放，默认为true。是下面那个的前提。
+        webSettings.setBuiltInZoomControls(true); //设置内置的缩放控件。若为false，则该WebView不可缩放
+        webSettings.setDisplayZoomControls(false);//隐藏原生的缩放控件
+
+        // 其他细节操作
+        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); //关闭webview中缓存
+        webSettings.setAllowFileAccess(true); //设置可以访问文件
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
+        webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
+        webSettings.setDefaultTextEncodingName("utf-8");//设置编码格式
     }
 }

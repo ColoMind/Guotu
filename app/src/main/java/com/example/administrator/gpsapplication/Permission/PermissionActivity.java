@@ -1,30 +1,23 @@
 package com.example.administrator.gpsapplication.Permission;
 
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.example.administrator.gpsapplication.Common;
 import com.example.administrator.gpsapplication.R;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class PermissionActivity extends AppCompatActivity {
     // 权限授权
-    public static final int PERMISSIONS_GRANTED = 0;
+    public static final int PERMISSIONS_GRANTED = -1;
     // 权限拒绝
     public static final int PERMISSIONS_DENIED = 1;
     // 系统权限管理页面的参数
@@ -87,7 +80,7 @@ public class PermissionActivity extends AppCompatActivity {
     // 全部权限均已获取
     private void allPermissionsGranted() {
         setResult(PERMISSIONS_GRANTED);
-        finish();
+        onBackPressed();
     }
 
     /**
