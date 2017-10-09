@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">GpsApplication</string>
 
+    <string name="key_save_photo_paths">photoPaths</string>
+    <string name="key_save_map_url">savemapurl</string>
     <string name="key_save_username">username</string>
     <string name="key_save_password">password</string>
     <string name="key_save_longitude">longitude</string>
@@ -9,6 +11,7 @@
     <string name="key_pref_upload">prefUpload</string>
 
     <string name="pref_upload_title">数据保存方式</string>
+    <string name="pref_multi_photo">多选</string>
 
     <!-- strings for settings -->
     <string name="upload_server">上传数据到服务器</string>
@@ -40,5 +43,20 @@
     </string>
 
     <string name="open_map">打开地图</string>
+    <string name="server_test">测试服务器</string>
 
+    <!--Strings for MapView test -->
+    <string name="featureServiceURL">http://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Cities/FeatureServer/0</string>
+    <string name="query_us">地图 : 乡镇区划</string>
+    <string name="query_ca">地图 : 影像</string>
+    <string name="query_fr">地图 : 土地利用现状</string>
+    <string name="query_au">地图 : 规划</string>
+    <string name="query_br">地图 : 坝区基本农田</string>
+    <string name="city"><b>City: </b></string>
+    <string name="pop"><b>Population: </b></string>
+
+    <string name="split">.</string>
+    <string name="curr_location">当前位置 :</string>
+    <string name="business_type">业务类型 :</string>
+    <string name="sit_descrip">情况描述 :</string>
 </resources>

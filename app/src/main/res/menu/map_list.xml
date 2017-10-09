@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.arcgis.android.samples.cloudportal.querycloudfeatureservice.MainActivity">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/Query_Township"
+            android:title="@string/query_us"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/Query_Image"
+            android:title="@string/query_ca"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/Query_LandUse"
+            android:title="@string/query_fr"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/Query_Plan"
+            android:title="@string/query_au"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/Query_Dam_Area"
+            android:title="@string/query_br"
+            app:showAsAction="never" />
+    </group>
+
+</menu>

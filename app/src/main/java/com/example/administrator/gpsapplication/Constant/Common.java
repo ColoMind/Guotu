@@ -44,4 +44,6 @@ public class Common {
     public static final int REQUEST_CAMERA_CODE = 10;
     public static final int REQUEST_PREVIEW_CODE = 20;
 
+    //zoom level;
+    public static final int ZOOM_LEVEL = 15;
 }

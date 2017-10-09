@@ -10,7 +10,6 @@ import android.net.NetworkInfo;
  * /**
  * 检测当的网络（WLAN、4G/3G/2G）状态
  *
- * @param context Context
  * @return true 表示网络可用
  */
 

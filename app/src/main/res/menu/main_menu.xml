@@ -15,6 +15,13 @@
         android:icon="@drawable/icon_camera"
         android:title="@string/title_menu_camera"
         app:showAsAction="always" />
-
+    <item
+        android:id="@+id/action_map"
+        android:title="@string/open_map"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/server_test"
+        android:title="@string/server_test"
+        app:showAsAction="never" />
 
 </menu>

@@ -9,6 +9,7 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.example.administrator.gpsapplication.R;
+import com.example.administrator.gpsapplication.Utils.CameraHelper;
 
 import java.util.ArrayList;
 
@@ -39,7 +40,7 @@ public class PhotoLoadAdapter extends RecyclerView.Adapter<PhotoLoadAdapter.Phot
 
     @Override
     public void onBindViewHolder(final PhotoViewHolder holder, int position) {
-        holder.bind(position);
+        CameraHelper.useGlide(holder.imageView,photoPaths,position);
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -59,14 +60,6 @@ public class PhotoLoadAdapter extends RecyclerView.Adapter<PhotoLoadAdapter.Phot
         public PhotoViewHolder(View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.preview_photo);
-        }
-
-        void bind(int index) {
-            Glide.with(imageView.getContext())
-                    .load(photoPaths.get(index))
-                    .centerCrop()
-                    .crossFade()
-                    .into(imageView);
         }
 
         @Override
